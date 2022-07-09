@@ -8,9 +8,17 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var image:UIImage?
+    @State private var showCameraView = false
+    
     var body: some View {
         VStack{
-            Button(action: {}, label: {
+            if image != nil {
+                Image(uiImage: image!)
+                    .resizable()
+                    .scaledToFit()
+            }
+            Button(action: {showCameraView.toggle()}, label: {
                 Image(systemName: "camera")
                     .resizable()
                     .scaledToFit()
@@ -19,6 +27,9 @@ struct ContentView: View {
             Button(action: {}, label: {
                 Text("AIの解析")
             })
+        }
+        .sheet(isPresented: $showCameraView) {
+            ImagePickerSwiftUI(image: $image, showCameraView: $showCameraView)
         }
     }
 }
