@@ -11,6 +11,7 @@ import Vision
 struct ContentView: View {
     @State private var image:UIImage?
     @State private var showCameraView = false
+    @State private var texts:[String]?
     
     var body: some View {
         VStack{
@@ -32,11 +33,25 @@ struct ContentView: View {
                 }, label: {
                 Text("AIの解析")
             })
+            if texts != nil {
+                List{
+                    ForEach(0..<texts!.count) { index in
+                        Text(texts![index])
+                    }
+                }
+            }
         }
         .sheet(isPresented: $showCameraView) {
             ImagePickerSwiftUI(image: $image, showCameraView: $showCameraView)
         }
     }
+    
+    func updateTexts(message: [String]) {
+        DispatchQueue.main.async {
+            self.texts = message
+        }
+    }
+    
     func imageAnalizer(image:UIImage) {
         let url = Bundle.main.url(forResource: "MobileNetV2FP16", withExtension: "mlmodelc")!
         
@@ -46,9 +61,12 @@ struct ContentView: View {
         let request = VNCoreMLRequest(model: coreMLModel) { request, error in
             guard let results = request.results as? [VNClassificationObservation] else { return }
             
+            var messages:[String] = []
             for result in results[0...4] {
                 print(result.confidence * 100, result.identifier)
+                messages.append(String(result.confidence * 100) + " " + result.identifier)
             }
+            updateTexts(message: messages)
         }
         
         request.imageCropAndScaleOption = .centerCrop
